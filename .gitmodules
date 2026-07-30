@@ -1,0 +1,44 @@
+[submodule "wiz-sec/aws-vault"]
+	path = wiz-sec/aws-vault
+	url = https://github.com/wiz-sec/aws-vault.git
+	branch = master
+[submodule "wiz-sec/azure-sdk-for-go"]
+	path = wiz-sec/azure-sdk-for-go
+	url = https://github.com/wiz-sec/azure-sdk-for-go.git
+	branch = master
+[submodule "wiz-sec/azure-service-bus-go"]
+	path = wiz-sec/azure-service-bus-go
+	url = https://github.com/wiz-sec/azure-service-bus-go.git
+	branch = master
+[submodule "wiz-sec/charts"]
+	path = wiz-sec/charts
+	url = https://github.com/wiz-sec/charts.git
+	branch = master
+[submodule "wiz-sec/circle-monorepo"]
+	path = wiz-sec/circle-monorepo
+	url = https://github.com/wiz-sec/circle-monorepo.git
+	branch = master
+[submodule "wiz-sec/csvutil"]
+	path = wiz-sec/csvutil
+	url = https://github.com/wiz-sec/csvutil.git
+	branch = master
+[submodule "wiz-sec/go-retryablehttp"]
+	path = wiz-sec/go-retryablehttp
+	url = https://github.com/wiz-sec/go-retryablehttp.git
+	branch = master
+[submodule "wiz-sec/grammes"]
+	path = wiz-sec/grammes
+	url = https://github.com/wiz-sec/grammes.git
+	branch = master
+[submodule "wiz-sec/open-cvdb"]
+	path = wiz-sec/open-cvdb
+	url = https://github.com/wiz-sec/open-cvdb.git
+	branch = main
+[submodule "wiz-sec/orbs"]
+	path = wiz-sec/orbs
+	url = https://github.com/wiz-sec/orbs.git
+	branch = master
+[submodule "wiz-sec/auth0"]
+	path = wiz-sec/auth0
+	url = https://github.com/wiz-sec/auth0.git
+	branch = master
