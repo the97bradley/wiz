@@ -3,7 +3,7 @@
 Living context for agents and other LLMs working in this repository.
 **Append** new findings here as work progresses; do not delete historical notes unless they are wrong.
 
-Last updated: 2026-07-30 (Wiz MCP env probe)
+Last updated: 2026-07-30 (Wiz MCP service-account headers work)
 
 ---
 
@@ -101,29 +101,42 @@ Add dated bullets below when something durable is learned (API quirks, repo purp
 
 Cloud Agent env injects four secrets (also listed in `CLOUD_AGENT_*_SECRET_NAMES`):
 
-| Env var | Expected role | Observed value shape (this run) |
-|---------|---------------|----------------------------------|
-| `WIZ_MCP_AUTH` | OAuth token URL | HTTPS URL on `auth.test.wiz.io`, path `/oauth/token` |
-| `WIZ_MCP_CLIENT_ID` | Service-account client id | **Identical to `WIZ_MCP_AUTH`** (misconfigured / duplicate; not a UUID) |
-| `WIZ_MCP_CLIENT_SECRET` | Service-account secret | 64-char base64-like secret (present; do not log) |
-| `WIZ_MCP_ENDPOINT` | API endpoint | HTTPS URL on `api.eu3.test.wiz.io`, path `/graphql` |
+| Env var | Role | Observed shape (do not paste full secret values) |
+|---------|------|--------------------------------------------------|
+| `WIZ_MCP_AUTH` | GraphQL OAuth token URL | host `auth.test.wiz.io`, path `/oauth/token` |
+| `WIZ_MCP_CLIENT_ID` | MCP / SA client id | base64-ish (~53 chars); **not** a UUID |
+| `WIZ_MCP_CLIENT_SECRET` | MCP / SA secret | ~64-char secret (do not log) |
+| `WIZ_MCP_ENDPOINT` | GraphQL API | host `api.eu3.test.wiz.io`, path `/graphql` |
+
+Tenant DC derived from endpoint host: **`eu3`**. Env is test (`*.test.wiz.io`), not prod (`*.app.wiz.io`).
+
+### 2026-07-30 — Working MCP hit (service-account headers)
+
+Official Wiz MCP service-account auth is **not** Bearer against MCP. Send all three headers on every request:
+
+- `Wiz-Client-Id` ← `WIZ_MCP_CLIENT_ID`
+- `Wiz-Client-Secret` ← `WIZ_MCP_CLIENT_SECRET`
+- `Wiz-DataCenter` ← `eu3` (from Tenant Info / `api.<dc>.…` host)
+
+**Working URL (this tenant):** `https://mcp.test.wiz.io`  
+(Prod docs say `https://mcp.app.wiz.io`; those creds return `Invalid client credentials` on prod.)
+
+Verified flow:
+
+1. `POST initialize` → 200, `mcp-session-id`, server `Wiz MCP Server` / `1.0.0`
+2. `notifications/initialized` → 202
+3. Gateway `tools/list` → `discover` + `execute`
+4. `?mode=explicit` → 91 tools exposed directly
+5. `execute` / `get_issue_counts` → live counts (e.g. total ~402k issues)
+
+**Also works:** GraphQL via OAuth client_credentials. Use **form-urlencoded** (not JSON) to `WIZ_MCP_AUTH` with `audience=wiz-api`, then Bearer on `WIZ_MCP_ENDPOINT`. Bearer tokens do **not** authenticate the hosted MCP URL.
 
 **Gotchas**
 
-- No Wiz server appears in this session’s Cursor MCP catalog (`GetMcpTools` has no wiz match). Hitting Wiz MCP is HTTP/OAuth, not `CallMcpTool`.
-- Hosted MCP is live for the test tenant:
-  - Resource / regional host pattern: `mcp.eu3.test.wiz.io`
-  - Issuer host pattern: `mcp.test.wiz.io`
-  - Discovery: `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource` → 200
-- MCP OAuth supports **`authorization_code` + `refresh_token` only** (not `client_credentials`). Dynamic registration at issuer `/oauth2/register` works (201).
-- GraphQL service-account OAuth (intended use of these four vars) expects JSON POST to `WIZ_MCP_AUTH` with `{grant_type, client_id, client_secret, audience: "wiz-api"}`. With current secrets this returns **400 Bad Request** because `CLIENT_ID` is the auth URL, not a UUID.
-- Using `CLIENT_SECRET` as a Bearer against GraphQL → Unauthorized; against the MCP issuer → `Invalid or expired token`.
-- Prod peer host patterns also exist (`mcp.app.wiz.io`, `auth.app.wiz.io`); this env is clearly **test** (`*.test.wiz.io`, `api.eu3.test.wiz.io`).
-
-**Unblock**
-
-- Fix cloud secrets so `WIZ_MCP_CLIENT_ID` is the real service-account client id (keep auth URL only on `WIZ_MCP_AUTH`).
-- For remote MCP tool use from Cursor: wire a remote MCP entry to the test issuer/regional MCP host with interactive OAuth, or mint a valid token after fixing client id and use GraphQL (`WIZ_MCP_ENDPOINT`) separately from MCP.
+- Missing/invalid `Wiz-*` headers → silent fallback to browser OAuth (docs); from raw HTTP you see 401 `Invalid or expired token` instead.
+- `mcp.eu3.test.wiz.io` returns `Invalid request` for initialize; use issuer host `mcp.test.wiz.io` with `Wiz-DataCenter: eu3`.
+- No Wiz entry in Cursor MCP catalog here (`GetMcpTools`); hit over HTTP.
+- Earlier false lead: `CLIENT_ID` once duplicated the auth URL — since fixed.
 
 ## How to extend this file
 
