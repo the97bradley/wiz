@@ -3,7 +3,7 @@
 Living context for agents and other LLMs working in this repository.
 **Append** new findings here as work progresses; do not delete historical notes unless they are wrong.
 
-Last updated: 2026-07-30 (Wiz MCP service-account headers work)
+Last updated: 2026-07-31 (PorchFest sheet workflow: lineup vs accepted)
 
 ---
 
@@ -137,6 +137,21 @@ Verified flow:
 - `mcp.eu3.test.wiz.io` returns `Invalid request` for initialize; use issuer host `mcp.test.wiz.io` with `Wiz-DataCenter: eu3`.
 - No Wiz entry in Cursor MCP catalog here (`GetMcpTools`); hit over HTTP.
 - Earlier false lead: `CLIENT_ID` once duplicated the auth URL — since fixed.
+
+### 2026-07-31 — Denver PorchFest sheets (Google SA)
+
+Env: `GOOGLE_SERVICE_ACCOUNT_JSON` → `cursordriveaccess@mindful-acre-502418-m2.iam.gserviceaccount.com`.
+
+**Correct band flow (user clarified):**
+
+1. **All lineup bands** (`11Mo0j5WBxYODfXDzeosbQ3jQepINSuJEn9mOftZF3xs`) = master list — **accepted + confirmed**. Never strip confirmed artists from here.
+2. **Accepted bands** tab in Artist Application Responses (`1A2v_mGaVE-4pKrmiJDJMT7nmnjUUcBoO29gfiPHwA-M`, sheetId `1655144523`) = pending confirmation only.
+3. **Artist Confirmation** (`1ttZCF7dE0KAeQKyMeaSCx3KwtC0R4iXr4A_i528HOyE`) = confirmed source (`Form Responses 1` + `Lineup release august 6`).
+4. When a band confirms → remove them from **Accepted bands** only; leave lineup intact.
+
+**Mistake / fix:** An agent wrongly deleted ~168 confirmed rows from All lineup bands. Restored from Drive revision `130` (2026-07-31T16:28Z) → **192 rows**. Then removed 2 leftover confirmed names from Accepted only (`Intergalactic Peace Jelly`, `Zambi String Band`) → Accepted ≈23 pending.
+
+**Gotcha:** Do not treat “All lineup bands” as the accepted queue.
 
 ## How to extend this file
 
